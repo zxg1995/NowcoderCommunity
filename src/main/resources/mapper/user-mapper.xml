@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace中指定该映射文件对应mapper接口的路径与名字-->
+<mapper namespace="com.nowcoder.community.dao.UserMapper">
+
+    <sql id="selectFields">
+        id, username, password, salt, email, type, status, activation_code, header_url, create_time
+    </sql>
+
+    <sql id="insertFields">
+        username, password, salt, email, type, status, activation_code, header_url, create_time
+    </sql>
+    
+    <!--select标签表示执行什么类型的操作，id对应Mapper接口文件中的方法名，
+    resultType表示返回的类型，因为我们在application.properties文件中配置
+    了实体类所在路径，因此这里就不需要加上包名了-->
+    <select id="selectById" resultType="User">
+        select <include refid="selectFields"></include>
+        from user
+        where id = #{id}
+        <!--#{}表示要引用方法中的参数-->
+    </select>
+
+    <select id="selectByName" resultType="User">
+        select <include refid="selectFields"></include>
+        from user
+        where username = #{username}
+        <!--#{}表示要引用方法中的参数-->
+    </select>
+
+    <select id="selectByEmail" resultType="User">
+        select <include refid="selectFields"></include>
+        from user
+        where email = #{email}
+    </select>
+
+    <insert id="insertUser" parameterType="User" keyProperty="id">
+        <!--keyProperty表示要声明主键对应的属性名-->
+        insert into user (<include refid="insertFields"></include>)
+        values (#{username}, #{password}, #{salt}, #{email}, #{type}, #{status}, #{activationCode}, #{headerUrl}, #{createTime})
+    </insert>
+
+    <update id="updateStatus">
+        <!--因为返回类型和参数类型都比较简单，因此不用声明-->
+        update user set status = #{status} where id = #{id}
+    </update>
+
+    <update id="updateHeader">
+        update user set header_url = #{headerUrl} where id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        update user set password = #{password} where id = #{id}
+    </update>
+    
+</mapper>
