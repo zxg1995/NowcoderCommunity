@@ -1,20 +1,24 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.service.AlphaService;
+import com.nowcoder.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
 /**
  * Created by Paul Z on 2020/6/4
+ * 该类用于演示一些示例与demo
  */
 @Controller
 //给这个类提供一个名为“alpha”的访问名
@@ -169,5 +173,64 @@ public class AlphaController {
         list.add(emp);
 
         return list;
+    }
+
+    //HTTP Cookie示例
+
+    //首先，服务端返回一个cookie给浏览器保存下来，cookie放于response头部
+    @RequestMapping(path = "/cookie/set", method = RequestMethod.GET)
+    @ResponseBody
+    public String setCookie(HttpServletResponse response){
+
+        //创建cookie对象
+        //每个cookie对象只能保存一组key，value数据，且只能为字符串数据
+        Cookie cookie = new Cookie("code", CommunityUtil.generateUUID());
+
+        //设置cookie生效的范围
+        //即访问哪些网页会使用到这些cookie
+        cookie.setPath("/community/alpha");
+
+        //设置cookie的生存时间
+        //默认情况下是保存到内存中，关闭浏览器cookie就没有了
+        //设置一定时间后，就保存到硬盘里, 比如保存10分钟
+        cookie.setMaxAge(60 * 10);
+
+        //发送cookie，即将其添加到response的头部里
+        response.addCookie(cookie);
+
+        //返回结果是字符串还是网页没有关系
+        return "Set cookie!";
+    }
+
+    //再来一个请求，看看request里有没有cookie
+    @RequestMapping(path = "/cookie/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getCookie(@CookieValue("code") String code){
+        //@CookieValue注解可以获得key为code的cookie的value字符串，并赋给参数
+        System.out.println(code);
+        return "get cookie!";
+    }
+
+    //Session示例
+    //session由spring管理，因此会自动返回一个带cookie的response
+    @RequestMapping(path = "/session/set", method = RequestMethod.GET)
+    @ResponseBody
+    public String setSession(HttpSession session){
+
+        //session保存在服务器端，故可以存不同类型的数据，也可以存许多数据
+        session.setAttribute("id", 1);
+        session.setAttribute("name", "Test");
+
+        return "set session!";
+    }
+
+    //演示从session中取值
+    @RequestMapping(path = "/session/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getSession(HttpSession session){
+        System.out.println(session.getAttribute("id"));
+        System.out.println(session.getAttribute("name"));
+
+        return "get session!";
     }
 }

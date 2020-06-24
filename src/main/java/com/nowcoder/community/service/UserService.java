@@ -1,6 +1,8 @@
 package com.nowcoder.community.service;
 
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
@@ -31,6 +33,9 @@ public class UserService implements CommunityConstant {
 
     @Autowired
     private TemplateEngine templateEngine;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     @Value("${community.path.domain}")
     private String domain;    //注入域名
@@ -118,5 +123,137 @@ public class UserService implements CommunityConstant {
         else {
             return ACTIVATION_FAILURE;
         }
+    }
+
+    //实现一个用户登录的方法，参数expiredSeconds表示登录状态保存的时间（秒数）
+    public Map<String, Object> login(String username, String password, long expiredSeconds){
+        Map<String, Object> map = new HashMap<>();
+
+        //空值处理
+        if (StringUtils.isBlank(username)){
+            map.put("usernameMsg", "账号不能为空！");
+            return map;
+        }
+        if (StringUtils.isBlank(password)){
+            map.put("passwordMsg", "密码不能为空！");
+            return map;
+        }
+
+        //验证输入值的合法性
+        User user = userMapper.selectByName(username);
+        if (user == null){
+            map.put("usernameMsg", "该账号不存在！");
+            return map;
+        }
+        //验证该账号是否激活
+        if (user.getStatus() == 0){
+            map.put("usernameMsg", "该账号未激活！");
+            return map;
+        }
+        //验证密码是否正确
+        password = CommunityUtil.md5(password+user.getSalt());
+        if (!user.getPassword().equals(password)){
+            map.put("passwordMsg", "输入的密码不正确！");
+            return map;
+        }
+
+        //到这一步了，表示登录成功了
+        //生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        //生成的登录凭证ticket要返回给浏览器，让浏览器下次访问时携带，才能记住登录状态
+        map.put("ticket", loginTicket.getTicket());
+
+        return map;
+    }
+
+    //实现用户退出方法
+    public void logout(String ticket){
+        loginTicketMapper.updateStatus(ticket, 1);
+    }
+
+    //实现查询凭证的方法
+    public LoginTicket findLoginTicket(String ticket){
+        return loginTicketMapper.selectByTicket(ticket);
+    }
+
+    //实现发送验证码方法
+    public Map<String, Object> sendVerificationCode(String email){
+        Map<String, Object> map = new HashMap<>();
+        //空值处理
+        if (StringUtils.isBlank(email)){
+            map.put("emailMsg", "邮箱不能为空！");
+            return map;
+        }
+        //查询邮箱对应的用户是否存在
+        User user = userMapper.selectByEmail(email);
+        if (user == null){
+            map.put("emailMsg", "该邮箱对应账号不存在！");
+            return map;
+        }
+        //验证该邮箱对应账号是否激活
+        if (user.getStatus() == 0){
+            map.put("emailMsg", "该邮箱对应账号未激活！");
+            return map;
+        }
+
+        //生成验证码
+        String verificationCode = CommunityUtil.generateUUID().substring(0,8);
+        map.put("verificationCode", verificationCode);
+
+        //给用户发验证码邮件
+        Context context = new Context();
+        context.setVariable("email", user.getEmail());
+        context.setVariable("verificationCode", verificationCode);
+        String content = templateEngine.process("/mail/forget", context);
+        mailClient.sendMail(user.getEmail(), "账号密码找回", content);
+
+        return map;
+    }
+
+    //实现忘记密码的方法
+    public Map<String, Object> forgetPassword(String email, String password){
+        Map<String, Object> map = new HashMap<>();
+
+        //空值处理
+        if (StringUtils.isBlank(email)){
+            map.put("emailMsg", "邮箱不能为空！");
+            return map;
+        }
+        if (StringUtils.isBlank(password)){
+            map.put("passwordMsg", "密码不能为空！");
+            return map;
+        }
+
+        //验证合法性
+        User user = userMapper.selectByEmail(email);
+        if (user == null){
+            map.put("emailMsg", "该邮箱对应账号不存在！");
+            return map;
+        }
+        if (user.getStatus() == 0){
+            map.put("emailMsg", "该邮箱对应账号未激活！");
+            return map;
+        }
+
+        String newPassword = CommunityUtil.md5(password+user.getSalt());
+        userMapper.updatePassword(user.getId(), newPassword);
+
+        return map;
+    }
+
+    //更新用户头像所在路径
+    public int updateHeader(int userId, String heardUrl){
+        return userMapper.updateHeader(userId, heardUrl);
+    }
+
+    //更新用户的密码
+    public int updatePassword(int userId, String newPassword){
+        return userMapper.updatePassword(userId, newPassword);
     }
 }

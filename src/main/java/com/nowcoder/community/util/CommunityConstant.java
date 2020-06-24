@@ -16,4 +16,9 @@ public interface CommunityConstant {
     //激活失败
     int ACTIVATION_FAILURE = 2;
 
+    //默认状态的登录超时时间(不勾“记住我”的时间)
+    int DEFAULT_EXPIRED = 3600 * 12;
+
+    //记住状态下的登录超时时间，记录100天
+    int REMEMBER_EXPIRED = 3600 * 24 * 100;
 }
