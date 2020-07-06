@@ -37,7 +37,7 @@
     </select>
 
     <insert id="insertUser" parameterType="User" keyProperty="id">
-        <!--keyProperty表示要声明主键对应的属性名-->
+        <!--keyProperty表示要声明主键对应的属性名, 同时插入成功后会将自动生成的id号赋给这个user对象中的id属性-->
         insert into user (<include refid="insertFields"></include>)
         values (#{username}, #{password}, #{salt}, #{email}, #{type}, #{status}, #{activationCode}, #{headerUrl}, #{createTime})
     </insert>

@@ -24,4 +24,11 @@ public interface DiscussPostMapper {
     //并且该方法有且只有一个参数，这个时候必须要加@Param注解，不然会报错
     int selectDiscussPostRows(@Param("userId") int userId);
 
+    int insertDiscussPost(DiscussPost discussPost);
+
+    //根据ID查询帖子的详情
+    DiscussPost selectDiscussPostById(int id);
+
+    //修改帖子评论数量属性
+    int updateCommentCount(int id, int commentCount);
 }

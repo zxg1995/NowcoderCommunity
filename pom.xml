@@ -80,6 +80,16 @@
 			<version>2.3</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.71</version>
+		</dependency>
+		<!-- 很多时候可以不用指定引入依赖的版本，因为该pom文件的父pom文件会指定一些常用包的最优版本，这些版本一定是互相兼容的 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
 
 	</dependencies>
 
