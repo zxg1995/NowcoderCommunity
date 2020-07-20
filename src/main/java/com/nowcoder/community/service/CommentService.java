@@ -40,6 +40,10 @@ public class CommentService implements CommunityConstant {
         return commentMapper.selectCommentsByUserAndEntity(userId, entityType, offset, limit);
     }
 
+    public Comment findCommentById(int id){
+        return commentMapper.selectCommentById(id);
+    }
+
     public int findCommentCountByUserAndEntity(int userId, int entityType){
         return commentMapper.selectCountByUserAndEntity(userId, entityType);
     }

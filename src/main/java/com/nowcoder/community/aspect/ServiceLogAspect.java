@@ -33,11 +33,20 @@ public class ServiceLogAspect {
         //用户[1.2.3.4]在[xxx(时间)]访问了[com.nowcoder.community.service.xxx()]
         //得到用户的IP地址
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attributes.getRequest();
-        String ip = request.getRemoteHost();
-        String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        //得到连接点方法所在的类名以及方法名
-        String target = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
-        logger.info(String.format("用户[%s]在[%s]访问了[%s]", ip, now, target));
+        //如果非Controller中的方法访问了service中的方法，就会产生得不到request的异常，因此要判断一下
+        if (attributes == null){
+            String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+            //得到连接点方法所在的类名以及方法名
+            String target = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
+            logger.info(String.format("某方法在[%s]访问了[%s]", now, target));
+        }
+        else {
+            HttpServletRequest request = attributes.getRequest();
+            String ip = request.getRemoteHost();
+            String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+            //得到连接点方法所在的类名以及方法名
+            String target = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
+            logger.info(String.format("用户[%s]在[%s]访问了[%s]", ip, now, target));
+        }
     }
 }

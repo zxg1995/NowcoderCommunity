@@ -25,7 +25,8 @@ import java.util.Date;
  * Created by Paul Z on 2020/6/5
  */
 @Service
-//@Scope("prototype")        //"prototype"的意思是每次访问容器中的Bean都会创建一个新的实例，默认参数为"singleton",表示单例
+//@Scope("prototype")        表示Bean的作用域
+//参数"prototype"的意思是每次访问容器中的Bean都会创建一个新的实例，默认参数为"singleton",表示单例
 //大多数情况下，使用的是单例方式
 public class AlphaService {
 
